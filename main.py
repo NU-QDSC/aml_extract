@@ -83,10 +83,10 @@ def detect_best_match(abnormalities):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    with open(f'results/aml_extract_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv', mode='w') as extract_file:
+    with open(f'data/results/aml_extract_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv', mode='w') as extract_file:
         extract_writer = csv.writer(extract_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         extract_writer.writerow(['pathology stable identifier value 1', 'Genetic Abnormality Name', 'Status', 'Percentage', 'Matched OG Phrase', 'Score'])
-        for report in list(Path('data/sample_reports').glob('1-FI-17-0001693.*')): # sample(list(Path('data/sample_reports').glob('*.txt')), 10):
+        for report in sample(list(Path('data/sample_reports').glob('*.txt')), 10): # list(Path('data/sample_reports').glob('1-FI-17-0001693.*'))
             print(report.stem)
             doc = nlp(open(report, 'r').read())
             duped_abnormalities = []
