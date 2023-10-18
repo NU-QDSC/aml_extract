@@ -1,0 +1,27 @@
+llm -m llama2-hermes -s 'Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+Detect the genetic abnormalities from the following pathology report. Respond in CSV format with the following columns: genetic_abnormality_name, status, percentage. For each genetic abnormality detected, respond as a new row with the name of the genetic abnormality. The status column refers to the presence of that specific genetic abnormality and should be POSITIVE if it is found or NEGATIVE if it is not detected. The percentage column should be filled in with the percentage of abnormal cells, but only if the information is available.
+
+### Response:'
+
+
+
+llm -m llama2-hermes -s 'Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+Detect the genetic abnormalities from the following pathology report. Respond in CSV format with the following columns: genetic_abnormality_name, status, percentage, start_index, end_index.
+For each genetic abnormality detected, respond as a new row with the name of the genetic abnormality. The status column refers to the presence of that specific genetic abnormality and should be POSITIVE if it is found or NEGATIVE if it is not detected. The percentage column should be filled in with the percentage of abnormal cells, but only if the information is available.
+The start_index and end_index columns refer to the location of the phrase containing all the information on the genetic abnormality within the pathology report. The start_index and end_index must be positive integers where the first character of the pathology report is indexed at 0. The start_index should be the index of the beginning of the first word of the phrase containing all the information on the genetic abnormality and the end_index should be the index of the end of the last word of the phrase containing all the information on the genetic abnormality.
+
+### Response:'
+
+
+llm -m llama2-hermes -s 'Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+Detect the genetic abnormalities from the following pathology report. Respond in CSV format with the following columns: genetic_abnormality_name, status, percentage, original_phrase.
+For each genetic abnormality detected, respond as a new row with the name of the genetic abnormality. The status column refers to the presence of that specific genetic abnormality and should be POSITIVE if it is found or NEGATIVE if it is not detected. The percentage column should be filled in with the percentage of abnormal cells, but only if the information is available.
+In the original_phrase column, return the original text that matches the genetic abnormality exactly as it appears in the pathology report, including status and percentage context if possible.
+
+### Response:'
