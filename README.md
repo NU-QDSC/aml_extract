@@ -2,25 +2,25 @@
 1. Setup and activate python environment
    - `python -m venv venv`
    - `source venv/bin/activate`
-2. Install llm and llama2 model
-   - `pip install llm`
-   - `CMAKE_ARGS="-DLLAMA_METAL=on" FORCE_CMAKE=1 llm install llama-cpp-python`
-   - `llm install llm-llama-cpp`
-   - `llm llama-cpp download-model 'https://huggingface.co/TheBloke/Speechless-Llama2-Hermes-Orca-Platypus-WizardLM-13B-GGUF/resolve/main/speechless-llama2-hermes-orca-platypus-wizardlm-13b.Q5_K_M.gguf' -a llama2-hermes`
+2. Install langchain and ollama
+   - `pip install langchain`
+   - Monkey patch ollama.py:135 in langchain.llms to `json={"prompt": prompt, "format": "json", **params},` and multiple places, where appropriate, to allow for system prompts:
+   ```python
+   system: Optional[str] = None
+   
+   "system": self.system,
+   
+   return {**{"model": self.model, "system": self.system}, **self._default_params}
+   
+   params = {**self._default_params, "stop": stop, "system": self.system, **kwargs}
+   ```
+   - https://github.com/jmorganca/ollama
 3. Install other tools
    - Extract nmslib-master.zip into `./venv/lib/python3.11/site-packages`
    - `pip install --no-cache-dir venv/lib/python3.11/site-packages/nmslib-master/python_bindings`
    - `pip install scispacy`
    - `pip install 'spacy[apple]'`
    - `pip install sentence-transformers`
+   - `pip install pandas`
+   - `pip install openpyxl`
    - Install 'en_core_sci_lg' model from https://github.com/allenai/scispacy#available-models
-4. Use the following command and prompt format with this specific model
-   - `cat report.txt | llm -m llama2-hermes -s 'This is a prompt related to the piped in file'`
-```text
-Below is an instruction that describes a task. Write a response that appropriately completes the request.
-
-### Instruction:
-{prompt}
-
-### Response:
-```
