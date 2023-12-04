@@ -86,11 +86,11 @@ if __name__ == '__main__':
     with open(f'data/results/aml_extract_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv', mode='w') as extract_file:
         extract_writer = csv.writer(extract_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         extract_writer.writerow(['pathology stable identifier value 1', 'Genetic Abnormality Name', 'Status', 'Percentage', 'Matched OG Phrase', 'Score'])
-        for report in sample(list(Path('data/report_excerpts').glob('*.txt')), 10): # list(Path('data/report_excerpts').glob('1-FI-17-0001693.*'))
+        for report in sample(list(Path('data/report_excerpts_v3').glob('*.txt')), 10): # list(Path('data/report_excerpts_v3').glob('Fluorescence in situ hybridization_cerner_central_41623147.*'))
             print(report.stem)
             doc = nlp(open(report, 'r').read())
             duped_abnormalities = []
-            for i in range(5):
+            for i in range(3):
                 resp_text, genetic_abnormalities = extract_genetic_abnormalities(doc.text)
                 print(resp_text)
                 if len(genetic_abnormalities) > 0:
