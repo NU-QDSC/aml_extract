@@ -124,7 +124,7 @@ if __name__ == '__main__':
                                             unmatched = False
                                     if unmatched:
                                         duped_abnormalities.append({"location": location, "abnormalities": [abnormality]})
-                    except KeyError as exception:
+                    except Exception as exception:
                         print(f'KeyError: {exception}')
                         continue
                 for da in duped_abnormalities:
