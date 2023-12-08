@@ -3,7 +3,9 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import spacy
-import llm
+from langchain.llms import Ollama
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from sentence_transformers import SentenceTransformer, util
 import csv
 import math
@@ -13,7 +15,8 @@ import traceback
 
 nlp = spacy.load("en_core_sci_lg")
 embedder = SentenceTransformer("allenai-specter", device="mps")
-model = llm.get_model("llama2-hermes")
+model = Ollama(model="hermes",
+               callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
 
 
 def split_line(line):
@@ -24,15 +27,16 @@ def split_line(line):
 
 
 def extract_genetic_abnormalities(text):
-    response = model.prompt(text, system="""Below is an instruction that describes a task. Write a response that appropriately completes the request.
+    response = model("""Below is an instruction that describes a task. Write a response that appropriately completes the request.
 
-### Instruction:
-Detect the genetic abnormalities from the following pathology report. Respond in CSV format with the following columns: genetic_abnormality_name, status, percentage. For each genetic abnormality detected, respond as a new row with the name of the genetic abnormality. The status column refers to the presence of that specific genetic abnormality and should be POSITIVE if it is found or NEGATIVE if it is not detected. The percentage column should be filled in with the percentage of abnormal cells, but only if the information is available.
+    ### Instruction:
+    Detect the genetic abnormalities from the following pathology report. Respond in CSV format with the following columns: genetic_abnormality_name, status, percentage. For each genetic abnormality detected, respond as a new row with the name of the genetic abnormality. The status column refers to the presence of that specific genetic abnormality and should be POSITIVE if it is found or NEGATIVE if it is not detected. The percentage column should be filled in with the percentage of abnormal cells, but only if the information is available.
 
-### Response:""")
+    ### Response:
+    """ + text)
     genetic_abnormalities = []
     header_index = {"genetic_abnormality_name": None, "status": None, "percentage": None}
-    for line in response.text().splitlines():
+    for line in response.splitlines():
         cells = split_line(line)
         if header_index["genetic_abnormality_name"] is None:
             lower_cells = [c.lower() for c in cells]
@@ -62,7 +66,7 @@ Detect the genetic abnormalities from the following pathology report. Respond in
             except TypeError as exception:
                 print(f'TypeError: {exception}')
                 break
-    return response.text(), genetic_abnormalities
+    return response, genetic_abnormalities
 
 
 def find_top_phrases(spacy_doc, queries):
@@ -87,7 +91,6 @@ def detect_best_match(abnormalities):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # for report in list(Path('data/report_excerpts_v3').glob('?.txt')):
     for report in list(Path('data/report_excerpts_v3').glob('*.txt')):
         report_name = report.stem
         file_name = f'data/results/{report_name}.csv'

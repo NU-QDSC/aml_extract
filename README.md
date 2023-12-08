@@ -2,12 +2,12 @@
 1. Setup and activate python environment
    - `python -m venv venv`
    - `source venv/bin/activate`
-2. Install llm and llama2 model
-   - `pip install llm`
-   - `CMAKE_ARGS="-DLLAMA_METAL=on" FORCE_CMAKE=1 llm install llama-cpp-python`
-   - `llm install llm-llama-cpp`
-   - `llm llama-cpp download-model 'https://huggingface.co/TheBloke/Speechless-Llama2-Hermes-Orca-Platypus-WizardLM-13B-GGUF/resolve/main/speechless-llama2-hermes-orca-platypus-wizardlm-13b.Q5_K_M.gguf' -a llama2-hermes`
+2. Install Ollama and llama2 model
+   - Install Ollama from https://ollama.ai/
+   - Use instructions to create a Modelfile https://github.com/jmorganca/ollama?tab=readme-ov-file#import-from-gguf
+   - `ollama create hermes -f Modelfile`
 3. Install other tools
+   - `pip install langchain`
    - Extract nmslib-master.zip into `./venv/lib/python3.11/site-packages`
    - `pip install --no-cache-dir venv/lib/python3.11/site-packages/nmslib-master/python_bindings`
    - `pip install scispacy`
