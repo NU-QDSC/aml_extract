@@ -10,6 +10,7 @@ import math
 from random import sample
 from pathlib import Path
 from datetime import datetime
+import os
 
 nlp = spacy.load("en_core_sci_lg")
 embedder = SentenceTransformer("allenai-specter", device="mps")
@@ -83,44 +84,58 @@ def detect_best_match(abnormalities):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    with open(f'data/results/aml_extract_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv', mode='w') as extract_file:
-        extract_writer = csv.writer(extract_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        extract_writer.writerow(['Report Excerpt', 'Genetic Abnormality Name', 'Status', 'Percentage', 'Matched OG Phrase', 'Score'])
-        for report in sample(list(Path('data/report_excerpts_v3').glob('*.txt')), 10): # list(Path('data/report_excerpts_v3').glob('Fluorescence in situ hybridization_cerner_central_41623147.*'))
-            print(report.stem)
-            doc = nlp(open(report, 'r').read())
-            duped_abnormalities = []
-            for i in range(3):
-                try:
-                    resp_text, genetic_abnormalities = extract_genetic_abnormalities(doc.text)
-                    print(resp_text)
-                    if len(genetic_abnormalities) > 0:
-                        results, phrases = find_top_phrases(doc, [
-                            f'{ga["genetic_abnormality_name"]} {ga["percentage"]}%' if ga["percentage"] else ga["genetic_abnormality_name"]
-                            for ga in genetic_abnormalities])
-                        for idx, ga in enumerate(genetic_abnormalities):
-                            if results[idx][0]["score"] > 0.95:
-                                unmatched = True
-                                span = phrases[results[idx][0]["corpus_id"]]
-                                location = range(span.start_char, span.end_char + 1)
-                                abnormality = dict(ga, **{"span": phrases[results[idx][0]["corpus_id"]],
-                                                          "score": results[idx][0]["score"]})
-                                for da in duped_abnormalities:
-                                    if len(range(max(location[0], da["location"][0]), min(location[-1], da["location"][-1]) + 1)) > min(len(location), len(da["location"]))/4 and (abnormality["percentage"] is None or da["abnormalities"][0]["percentage"] is None or abnormality["percentage"] == da["abnormalities"][0]["percentage"]):
-                                        da["abnormalities"].append(abnormality)
-                                        da.update({"location": range(min(location[0], da["location"][0]),
-                                                                     max(location[-1], da["location"][-1]) + 1)})
-                                        unmatched = False
-                                if unmatched:
-                                    duped_abnormalities.append({"location": location, "abnormalities": [abnormality]})
-                except KeyError as exception:
-                    print(f'KeyError: {exception}')
-                    continue
-            for da in duped_abnormalities:
-                abnormality = detect_best_match(da["abnormalities"])
-                extract_writer.writerow(
-                    [report.stem, abnormality["genetic_abnormality_name"], abnormality["status"],
-                     abnormality["percentage"],
-                     abnormality["span"].text, abnormality["score"]])
-            print(duped_abnormalities)
+    # for report in list(Path('data/report_excerpts_v3').glob('?.txt')):
+    for report in list(Path('data/report_excerpts_v3').glob('*.txt')):
+        report_name = report.name
+        report_name = report_name.replace('.txt', '')
+
+        file_name = f'data/results/{report_name}.csv'
+        file_exists = os.path.exists(file_name)
+        if file_exists == True:
+            print(f'File already exists: {file_name}')
+        if file_exists == False:
+            try:
+                print(f'We have a new file: {file_name}')
+                with open(file_name, mode='w') as extract_file:
+                    extract_writer = csv.writer(extract_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    extract_writer.writerow(['Report Excerpt', 'Genetic Abnormality Name', 'Status', 'Percentage', 'Matched OG Phrase', 'Score'])
+                    print(report.stem)
+                    doc = nlp(open(report, 'r').read())
+                    duped_abnormalities = []
+                    for i in range(3):
+                        try:
+                            resp_text, genetic_abnormalities = extract_genetic_abnormalities(doc.text)
+                            print(resp_text)
+                            if len(genetic_abnormalities) > 0:
+                                results, phrases = find_top_phrases(doc, [
+                                    f'{ga["genetic_abnormality_name"]} {ga["percentage"]}%' if ga["percentage"] else ga["genetic_abnormality_name"]
+                                    for ga in genetic_abnormalities])
+                                for idx, ga in enumerate(genetic_abnormalities):
+                                    if results[idx][0]["score"] > 0.95:
+                                        unmatched = True
+                                        span = phrases[results[idx][0]["corpus_id"]]
+                                        location = range(span.start_char, span.end_char + 1)
+                                        abnormality = dict(ga, **{"span": phrases[results[idx][0]["corpus_id"]],
+                                                                  "score": results[idx][0]["score"]})
+                                        for da in duped_abnormalities:
+                                            if len(range(max(location[0], da["location"][0]), min(location[-1], da["location"][-1]) + 1)) > min(len(location), len(da["location"]))/4 and (abnormality["percentage"] is None or da["abnormalities"][0]["percentage"] is None or abnormality["percentage"] == da["abnormalities"][0]["percentage"]):
+                                                da["abnormalities"].append(abnormality)
+                                                da.update({"location": range(min(location[0], da["location"][0]),
+                                                                             max(location[-1], da["location"][-1]) + 1)})
+                                                unmatched = False
+                                        if unmatched:
+                                            duped_abnormalities.append({"location": location, "abnormalities": [abnormality]})
+                        except KeyError as exception:
+                            print(f'KeyError: {exception}')
+                            continue
+                    for da in duped_abnormalities:
+                        abnormality = detect_best_match(da["abnormalities"])
+                        extract_writer.writerow(
+                            [report.stem, abnormality["genetic_abnormality_name"], abnormality["status"],
+                             abnormality["percentage"],
+                             abnormality["span"].text, abnormality["score"]])
+                    print(duped_abnormalities)
+            except KeyError as exception:
+                print(f'Outside: KeyError: {exception}')
+                continue
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
