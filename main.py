@@ -88,9 +88,9 @@ def detect_best_match(abnormalities):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     # for report in list(Path('data/report_excerpts_v3').glob('?.txt')):
-    for report in list(Path('data/report_excerpts_v3').glob('*.txt')):
+    for report in list(Path('data/report_excerpts_v4').glob('*.txt')):
         report_name = report.stem
-        file_name = f'data/results/{report_name}.csv'
+        file_name = f'data/results_cytogenetics/{report_name}.csv'
 
         if os.path.exists(file_name):
             print(f'File already exists: {file_name}')
